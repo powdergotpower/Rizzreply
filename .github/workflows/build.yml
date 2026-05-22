@@ -1,0 +1,142 @@
+name: Build Flutter App
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+env:
+  FLUTTER_VERSION: 3.19.0
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          cache: 'gradle'
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Analyze code
+        run: flutter analyze
+      
+      - name: Run tests
+        run: flutter test
+      
+      - name: Build APK
+        run: flutter build apk --release
+      
+      - name: Upload APK to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: android-apk
+          path: build/app/outputs/apk/release/app-release.apk
+          retention-days: 30
+
+  build-ios:
+    name: Build iOS App
+    runs-on: macos-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Analyze code
+        run: flutter analyze
+      
+      - name: Build iOS App
+        run: flutter build ios --release --no-codesign
+      
+      - name: Upload iOS Build to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-app
+          path: build/ios/iphoneos/Runner.app
+          retention-days: 30
+
+  build-web:
+    name: Build Web App
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Analyze code
+        run: flutter analyze
+      
+      - name: Build Web App
+        run: flutter build web --release
+      
+      - name: Upload Web Build to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: web-build
+          path: build/web
+          retention-days: 30
+
+  build-windows:
+    name: Build Windows App
+    runs-on: windows-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          cache: true
+      
+      - name: Get dependencies
+        run: flutter pub get
+      
+      - name: Analyze code
+        run: flutter analyze
+      
+      - name: Build Windows App
+        run: flutter build windows --release
+      
+      - name: Upload Windows Build to artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: windows-build
+          path: build/windows/x64/runner/Release
+          retention-days: 30
